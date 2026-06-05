@@ -2,6 +2,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // დამატებულია
 import { motion } from "framer-motion";
 import { Loader2, Lock, IdCard, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -27,7 +28,6 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    // პირადი ნომერი → კორპორატიული email (ფარულად)
     const email = personalIdToEmail(personalId);
     const { error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -46,7 +46,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background-gray px-4">
-      {/* Mesh gradient background */}
       <div className="absolute inset-0 bg-mesh-gradient" />
 
       <motion.div
@@ -55,7 +54,6 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-md rounded-3xl border border-borders bg-white p-8 shadow-card-hover sm:p-10"
       >
-        {/* Co-branded logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-sm">
@@ -71,12 +69,10 @@ export default function LoginPage() {
               <span className="text-lg font-extrabold text-fitpass-dark">FITPASS</span>
             </div>
           </div>
-          <p className="text-sm text-gray-500">კორპორატიული გამოწერების პორტალი | </p>
-          <p className="text-sm text-gray-200">hr- 91919191919 | admin123</p>
+          <p className="text-sm text-gray-500">კორპორატიული გამოწერების პორტალი</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
-          {/* Personal ID */}
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-fitpass-dark">
               პირადი ნომერი
@@ -97,7 +93,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Password */}
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-fitpass-dark">
               პაროლი
@@ -141,6 +136,14 @@ export default function LoginPage() {
               "შესვლა"
             )}
           </Button>
+
+          {/* რეგისტრაციის ტექსტი */}
+          <p className="text-center text-sm text-gray-600">
+            არ გაქვს ანგარიში?{" "}
+            <Link href="/register" className="font-semibold text-primary hover:underline">
+              რეგისტრაცია
+            </Link>
+          </p>
         </form>
       </motion.div>
     </div>
