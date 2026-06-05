@@ -1,6 +1,6 @@
 // components/MemberFormModal.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -25,7 +25,7 @@ const fields = [
   { key: "member_email", label: "ელ-ფოსტა", type: "email", placeholder: "name@example.com" },
 ] as const;
 
-const initialForm: MemberData = {
+const emptyForm: MemberData = {
   member_name_geo: "",
   member_name_lat: "",
   member_personal_id: "",
@@ -34,24 +34,43 @@ const initialForm: MemberData = {
   member_email: "",
 };
 
+interface Props {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSubmit: (data: MemberData) => Promise<void>;
+  mode?: "add" | "edit";
+  initialData?: Partial<MemberData> | null;
+}
+
 export default function MemberFormModal({
   open,
   onOpenChange,
   onSubmit,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onSubmit: (data: MemberData) => Promise<void>;
-}) {
-  const [form, setForm] = useState<MemberData>(initialForm);
+  mode = "add",
+  initialData,
+}: Props) {
+  const [form, setForm] = useState<MemberData>(emptyForm);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const resetAndClose = () => {
-    setForm(initialForm);
+  const isEdit = mode === "edit";
+
+  // ✅ Edit mode-ში მონაცემების ჩატვირთვა
+  useEffect(() => {
+    if (open && initialData) {
+      setForm({
+        member_name_geo: initialData.member_name_geo ?? "",
+        member_name_lat: initialData.member_name_lat ?? "",
+        member_personal_id: initialData.member_personal_id ?? "",
+        member_phone: initialData.member_phone ?? "",
+        member_dob: initialData.member_dob ?? "",
+        member_email: initialData.member_email ?? "",
+      });
+    } else if (open && !initialData) {
+      setForm(emptyForm);
+    }
     setError("");
-    onOpenChange(false);
-  };
+  }, [open, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,9 +88,8 @@ export default function MemberFormModal({
     try {
       setLoading(true);
       await onSubmit(form);
-      setForm(initialForm);
       onOpenChange(false);
-    } catch (err) {
+    } catch {
       setError("დაფიქსირდა შეცდომა. სცადეთ თავიდან.");
     } finally {
       setLoading(false);
@@ -83,7 +101,6 @@ export default function MemberFormModal({
       <AnimatePresence>
         {open && (
           <Dialog.Portal forceMount>
-            {/* Overlay */}
             <Dialog.Overlay asChild>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -94,12 +111,7 @@ export default function MemberFormModal({
               />
             </Dialog.Overlay>
 
-            {/* Centering wrapper — flexbox-ით ცენტრში */}
-            <Dialog.Content
-              asChild
-              onEscapeKeyDown={resetAndClose}
-              onPointerDownOutside={resetAndClose}
-            >
+            <Dialog.Content asChild>
               <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -107,12 +119,10 @@ export default function MemberFormModal({
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   transition={{ type: "spring", damping: 28, stiffness: 320 }}
                   className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-card-hover sm:p-8"
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  {/* Header */}
                   <div className="mb-6 flex items-center justify-between">
                     <Dialog.Title className="text-xl font-bold text-fitpass-dark">
-                      ახალი წევრის დამატება
+                      {isEdit ? "წევრის რედაქტირება" : "ახალი წევრის დამატება"}
                     </Dialog.Title>
                     <Dialog.Close
                       className="rounded-full p-1.5 text-gray-400 transition hover:bg-background-gray hover:text-fitpass-dark"
@@ -122,7 +132,6 @@ export default function MemberFormModal({
                     </Dialog.Close>
                   </div>
 
-                  {/* Form */}
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {fields.map((f) => (
@@ -161,7 +170,7 @@ export default function MemberFormModal({
                         type="button"
                         variant="outline"
                         className="flex-1"
-                        onClick={resetAndClose}
+                        onClick={() => onOpenChange(false)}
                         disabled={loading}
                       >
                         გაუქმება
@@ -172,7 +181,11 @@ export default function MemberFormModal({
                         className="flex-1"
                         disabled={loading}
                       >
-                        {loading ? "მიმდინარეობს..." : "დამატება"}
+                        {loading
+                          ? "მიმდინარეობს..."
+                          : isEdit
+                          ? "შენახვა"
+                          : "დამატება"}
                       </Button>
                     </div>
                   </form>
