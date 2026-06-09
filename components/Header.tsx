@@ -8,12 +8,14 @@ import { createClient } from "@/lib/supabase/client";
 
 interface Props {
   userName: string;
+  userRole?: "hr" | "user";
   onEditProfile?: () => void;
   onChangePassword?: () => void;
 }
 
 export default function Header({
   userName,
+  userRole = "user",
   onEditProfile,
   onChangePassword,
 }: Props) {
@@ -77,20 +79,22 @@ export default function Header({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl border border-borders bg-white shadow-card-hover"
+                className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-borders bg-white shadow-card-hover"
               >
                 <div className="border-b border-borders bg-background-gray px-4 py-3">
                   <p className="text-[10px] font-semibold uppercase text-gray-400">
                     ანგარიში
                   </p>
-                  <p className="truncate text-sm font-semibold text-fitpass-dark">
-                    {userName}
-                  </p>
+                  <div className="flex flex-col gap-2 mt-2">
+                    <p className="text-sm font-semibold text-fitpass-dark">
+                      {userName}
+                    </p>
+                  </div>
                 </div>
 
                 <MenuItem
                   icon={<Settings className="h-4 w-4" />}
-                  label="პროფილის რედაქტირება"
+                  label="რედაქტირება"
                   onClick={() => {
                     setMenuOpen(false);
                     onEditProfile?.();

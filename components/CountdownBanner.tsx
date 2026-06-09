@@ -6,12 +6,24 @@ import { Lock, Clock } from "lucide-react";
 import { getTimeRemaining } from "@/lib/deadline";
 
 export default function CountdownBanner({ locked }: { locked: boolean }) {
-  const [time, setTime] = useState(getTimeRemaining());
+  const [isMounted, setIsMounted] = useState(false);
+  const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    // კლიენტზე ჩატვირთვის დასრულება და დროის ზუსტი კალკულაცია
+    setIsMounted(true);
+    setTime(getTimeRemaining());
+    
     const interval = setInterval(() => setTime(getTimeRemaining()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Hydration-ის თავიდან ასაცილებლად, არაფერს ვარენდერებთ სანამ კლიენტზე არ ჩაიტვირთება
+  if (!isMounted) {
+    // layout shift-ის (გვერდის ახტომის) თავიდან ასაცილებლად შეგიძლიათ ცარიელი კონტეინერი დააბრუნოთ:
+    // return <div className="h-[76px] w-full" />;
+    return null; 
+  }
 
   if (locked) {
     return (

@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Pencil,
   Trash2,
+  CheckCircle2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { isPortalLocked } from "@/lib/deadline";
@@ -22,16 +23,15 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import SuccessAnimation from "@/components/SuccessAnimation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
+import Link from "next/link";
 
 interface Subscription {
   id: string;
-  user_id: string; // დაამატეთ თუ გაკლიათ
+  user_id: string;
   is_family_member: boolean;
   member_name_geo: string | null;
-  member_personal_id?: string | null; // დაამატეთ, რადგან ქვემოთ იყენებთ
+  member_personal_id?: string | null;
   status: "active" | "cancelled";
-  // დაამატეთ სხვა ველები, რაც MemberData-ში გაქვთ, მაგალითად:
   member_email?: string | null;
 }
 
@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
+  const [userRole, setUserRole] = useState<"hr" | "user">("user"); // დამატებული როლის state
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
   const [personal, setPersonal] = useState<Subscription | null>(null);
@@ -52,7 +53,7 @@ export default function DashboardPage() {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
-  // ✅ Delete confirmation state
+  // Delete confirmation state
   const [deleteTarget, setDeleteTarget] = useState<Subscription | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -67,16 +68,21 @@ export default function DashboardPage() {
     if (!user) return;
     setUserId(user.id);
 
+    // დამატებულია "role" select-ში
     const { data: prof } = await supabase
       .from("profiles")
       .select(
-        "first_name_geo, last_name_geo, first_name_lat, last_name_lat, phone, email, dob, personal_id"
+        "first_name_geo, last_name_geo, first_name_lat, last_name_lat, phone, email, dob, personal_id, role"
       )
       .eq("id", user.id)
       .single();
+      
     if (prof) {
       setProfile(prof as ProfileData);
       setUserName(`${prof.first_name_geo} ${prof.last_name_geo}`);
+      if (prof.role === "hr") {
+        setUserRole("hr");
+      }
     }
 
     const { data: subs } = await supabase
@@ -197,7 +203,7 @@ export default function DashboardPage() {
     }
   };
 
-  /* ─── ✅ Delete Member (სრულად ბაზიდან) ─── */
+  /* ─── Delete Member (სრულად ბაზიდან) ─── */
   const deleteMember = async () => {
     if (!deleteTarget || locked) return;
     setDeleteLoading(true);
@@ -249,12 +255,31 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background-gray">
       <Header
         userName={userName || "მომხმარებელი"}
+        userRole={userRole} // გადავცემთ როლს Header-ს
         onEditProfile={() => setProfileModalOpen(true)}
         onChangePassword={() => setPasswordModalOpen(true)}
       />
       <SuccessAnimation show={success} />
 
-      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-8 lg:px-8">
+        
+        {/* გამოჩნდება მწვანედ მხოლოდ მაშინ, თუ role არის hr */}
+        {userRole === "hr" && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center"
+          >
+            <Link 
+              href="/hr-admin"
+              className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3.5 py-1.5 text-sm font-bold text-green-700 shadow-sm border border-green-200 hover:bg-green-200 transition-colors cursor-pointer"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              HR გვერდზე გადასვლა ➤
+            </Link>
+          </motion.div>
+        )}
+
         <CountdownBanner locked={locked} />
 
         {loading ? (
@@ -331,25 +356,25 @@ export default function DashboardPage() {
                       key={m.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center justify-between rounded-2xl border border-borders bg-background-gray p-4"
+                      className="flex flex-col gap-3 rounded-2xl border border-borders bg-background-gray p-4 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white">
                           <Users className="h-5 w-5 text-primary" />
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-fitpass-dark">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-semibold text-fitpass-dark">
                             {m.member_name_geo}
                           </span>
                           {m.member_personal_id && (
-                            <span className="text-xs text-gray-400">
+                            <span className="truncate text-xs text-gray-400">
                               {m.member_personal_id}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
                         <Badge status={m.status} />
 
                         {m.status === "active" && (
@@ -380,7 +405,7 @@ export default function DashboardPage() {
                           </>
                         )}
 
-                        {/* ✅ Delete — ყოველთვის ხელმისაწვდომი (გარდა locked-ისა) */}
+                        {/* Delete */}
                         <Button
                           variant="outline"
                           size="sm"
@@ -404,7 +429,7 @@ export default function DashboardPage() {
       {/* ─── Modals ─── */}
       <MemberFormModal
         open={memberModalOpen}
-        onOpenChange={(v: boolean) => { // აქ დავამატეთ : boolean
+        onOpenChange={(v: boolean) => {
           setMemberModalOpen(v);
           if (!v) setEditingMember(null);
         }}
@@ -426,7 +451,7 @@ export default function DashboardPage() {
         onSuccess={triggerSuccess}
       />
 
-      {/* ✅ Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(v: boolean) => !v && setDeleteTarget(null)}

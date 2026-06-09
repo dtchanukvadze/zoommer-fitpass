@@ -2,9 +2,10 @@
 "use client";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link"; // დამატებულია Link
 import {
   Search, Download, Bell, ArrowUpDown, CheckCircle2,
-  XCircle, LayoutGrid, History,
+  XCircle, LayoutGrid, History, ArrowLeft, // დამატებულია ArrowLeft
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getMonthStart } from "@/lib/deadline";
@@ -135,10 +136,21 @@ export default function HrAdminPage() {
     <div className="min-h-screen bg-background-gray">
       <Header userName={userName || "HR"} />
 
-      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-        <div>
-          <h1 className="text-2xl font-bold text-fitpass-dark">HR პანელი</h1>
-          <p className="text-sm text-gray-500">გამოწერების მართვა და ანგარიშგება</p>
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-8 lg:px-8">
+        {/* სათაური და დაბრუნების ღილაკი */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-fitpass-dark sm:text-2xl">HR პანელი</h1>
+            <p className="text-sm text-gray-500">გამოწერების მართვა და ანგარიშგება</p>
+          </div>
+          
+          <Link
+            href="/dashboard"
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-borders bg-white px-4 py-2.5 text-sm font-semibold text-fitpass-dark shadow-sm transition-all hover:bg-background-gray hover:text-primary active:scale-95"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            პირად გვერდზე დაბრუნება
+          </Link>
         </div>
 
         {/* Metrics */}
@@ -161,7 +173,7 @@ export default function HrAdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-borders">
+        <div className="-mx-4 flex gap-2 overflow-x-auto border-b border-borders px-4 sm:mx-0 sm:px-0">
           {[
             { key: "table", label: "ცხრილი", icon: LayoutGrid },
             { key: "audit", label: "ცვლილებების ისტორია", icon: History },
@@ -170,7 +182,7 @@ export default function HrAdminPage() {
               key={t.key}
               onClick={() => setTab(t.key as "table" | "audit")}
               className={cn(
-                "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition",
+                "flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-sm font-semibold transition sm:px-4",
                 tab === t.key
                   ? "border-primary text-primary"
                   : "border-transparent text-gray-400 hover:text-fitpass-dark"
@@ -185,8 +197,8 @@ export default function HrAdminPage() {
         {tab === "table" ? (
           <div className="space-y-5">
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-[220px]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <div className="relative w-full sm:flex-1 sm:min-w-[220px]">
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   value={search}
@@ -196,37 +208,44 @@ export default function HrAdminPage() {
                 />
               </div>
 
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="rounded-xl border border-borders bg-white px-4 py-2.5 text-sm outline-none focus:border-primary"
-              >
-                <option value="all">ყველა</option>
-                <option value="active">აქტიური</option>
-                <option value="cancelled">გაუქმებული</option>
-              </select>
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                  className="flex-1 rounded-xl border border-borders bg-white px-4 py-2.5 text-sm outline-none focus:border-primary sm:flex-none"
+                >
+                  <option value="all">ყველა</option>
+                  <option value="active">აქტიური</option>
+                  <option value="cancelled">გაუქმებული</option>
+                </select>
 
-              {/* Changes Only with pulse */}
-              <button
-                onClick={() => setChangesOnly(!changesOnly)}
-                className={cn(
-                  "relative flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition",
-                  changesOnly
-                    ? "bg-primary text-white animate-pulse-orange"
-                    : "border border-borders bg-white text-fitpass-dark hover:bg-background-gray"
-                )}
-              >
-                <Bell className="h-4 w-4" />
-                მხოლოდ ცვლილებები
-                {changesOnly && (
-                  <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-fitpass-orange ring-2 ring-white" />
-                )}
-              </button>
+                {/* Changes Only with pulse */}
+                <button
+                  onClick={() => setChangesOnly(!changesOnly)}
+                  className={cn(
+                    "relative flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex-none",
+                    changesOnly
+                      ? "bg-primary text-white animate-pulse-orange"
+                      : "border border-borders bg-white text-fitpass-dark hover:bg-background-gray"
+                  )}
+                >
+                  <Bell className="h-4 w-4" />
+                  მხოლოდ ცვლილებები
+                  {changesOnly && (
+                    <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-fitpass-orange ring-2 ring-white" />
+                  )}
+                </button>
 
-              <Button variant="primary" size="md" onClick={exportCsv}>
-                <Download className="h-4 w-4" />
-                ექსპორტი
-              </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={exportCsv}
+                  className="w-full sm:w-auto"
+                >
+                  <Download className="h-4 w-4" />
+                  ექსპორტი
+                </Button>
+              </div>
             </div>
 
             {/* Table */}
@@ -259,23 +278,23 @@ export default function HrAdminPage() {
                     ) : (
                       filtered.map((r) => (
                         <tr key={r.id} className="transition hover:bg-background-gray">
-                          <td className="px-6 py-4 font-medium text-fitpass-dark">
+                          <td className="whitespace-nowrap px-6 py-4 font-medium text-fitpass-dark">
                             {r.is_family_member
                               ? r.member_name_geo
                               : `${r.profiles?.first_name_geo} ${r.profiles?.last_name_geo}`}
                           </td>
-                          <td className="px-6 py-4 text-gray-600">
+                          <td className="whitespace-nowrap px-6 py-4 text-gray-600">
                             {r.is_family_member ? r.member_personal_id : r.profiles?.personal_id}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="whitespace-nowrap px-6 py-4">
                             <span className="rounded-full bg-background-gray px-2.5 py-1 text-xs font-medium text-gray-600">
                               {r.is_family_member ? "ოჯახის წევრი" : "თანამშრომელი"}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="whitespace-nowrap px-6 py-4">
                             <Badge status={r.status} />
                           </td>
-                          <td className="px-6 py-4 text-gray-500">
+                          <td className="whitespace-nowrap px-6 py-4 text-gray-500">
                             {new Date(r.updated_at).toLocaleDateString("ka-GE")}
                           </td>
                         </tr>

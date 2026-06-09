@@ -45,7 +45,18 @@ export default function EditProfileModal({
 
   useEffect(() => {
     if (open && initialData) {
-      setForm(initialData);
+      // ვამატებთ || "" რათა თავიდან ავიცილოთ null მნიშვნელობები, 
+      // რამაც შეიძლება input-ში პრობლემა გამოიწვიოს
+      setForm({
+        first_name_geo: initialData.first_name_geo || "",
+        last_name_geo: initialData.last_name_geo || "",
+        first_name_lat: initialData.first_name_lat || "",
+        last_name_lat: initialData.last_name_lat || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
+        dob: initialData.dob || "",
+        personal_id: initialData.personal_id || "",
+      });
       setError("");
     }
   }, [open, initialData]);
@@ -231,7 +242,7 @@ function Field({
       </label>
       <input
         type={type}
-        value={value}
+        value={value || ""} // აქაც დამატებითი დაცვა
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-xl border border-borders bg-background-gray px-4 py-2.5 text-sm text-fitpass-dark outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
